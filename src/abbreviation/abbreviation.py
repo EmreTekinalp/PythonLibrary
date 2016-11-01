@@ -68,6 +68,8 @@ class Abbreviation(object):
                 continue
             # end if skip exclusion
             word = self._check_word(word)
+            if not word:
+                continue
             w = dict()
             ln = self._length
             if ln > len(word):
@@ -129,6 +131,9 @@ class Abbreviation(object):
 
         :param word: word to check
         """
+        if not (isinstance(word, str) or isinstance(word, unicode)):
+            return
+        # end if filter out non strings
         chars = string.punctuation
         if self._include_special_char:
             for ch in self._include_special_char:
@@ -152,7 +157,7 @@ class Abbreviation(object):
     def _iterate_word(word):
         """Iterate the given word and return it.
 
-         paramword <dict> word to iterate
+        :param word: word to iterate
         """
         result = dict()
         for w in word.items():
@@ -170,7 +175,7 @@ class Abbreviation(object):
     def _sort_word(word):
         """Reorder the dictionary and return a list.
 
-        :param word <dict> dict to convert to list and sort
+        :param word: dict to convert to list and sort
         """
         indices = list(word.keys())
         indices.sort()
@@ -180,9 +185,9 @@ class Abbreviation(object):
     def _increase_word(self, word, abbreviation, length):
         """Abbreviation is smaller than 3 characters, increase and return.
 
-        :param abbreviation <dict> abbreviated characters
-        :param word <dict> Word to apply the filter on
-        :param length <int> Length of the word
+        :param word: Word to apply the filter on
+        :param abbreviation: abbreviated characters
+        :param length: Length of the word
         """
         if len(abbreviation) == length:
             return abbreviation
@@ -219,8 +224,8 @@ class Abbreviation(object):
     def _add_char(elements, abbreviation):
         """Based on the given abbreviation and word find the next char.
 
-        :param abbreviation <dict> abbreviated characters
-        :param elements <dict> Word to apply the filter on
+        :param elements: Word to apply the filter on
+        :param abbreviation: abbreviated characters
         """
         for w in elements:
             if len(abbreviation.keys()) > 1:
@@ -244,7 +249,7 @@ class Abbreviation(object):
     def _list_to_string(self, items):
         """Convert a given list into a string, set case for each character.
 
-        :param items <list> List to convert to string
+        :param items: List to convert to string
         """
         return self._setup_case(''.join(item for item in items))
     # end def _list_to_string
@@ -271,9 +276,9 @@ class Abbreviation(object):
     def _decrease_word(self, word, abbreviation, length):
         """Abbreviation is bigger than 3 characters, decrease and return.
 
-        :param word <dict> dict to delete elements
-        :param abbreviation <dict> abbreviated characters
-        :param length <int> Length of the word
+        :param word: dict to delete elements
+        :param abbreviation: abbreviated characters
+        :param length: Length of the word
         """
         if len(abbreviation) == length:
             return abbreviation
@@ -287,25 +292,27 @@ class Abbreviation(object):
         return self._decrease_word(result, word, length)
     # end def _decrease_word
 
-    def _subtract_char(self, abbreviation):
+    @staticmethod
+    def _subtract_char(abbreviation):
         """Based on the given abbreviation and word find the next char.
 
-        :param abbreviation <dict> abbreviated characters
+        :param abbreviation: abbreviated characters
         """
         del(abbreviation[max(abbreviation.keys())])
         return abbreviation
     # end def _subtract_char
 
-    def _remove_duplicates(self, result, rest=dict()):
+    def _remove_duplicates(self, result):
         """Remove duplicates from the given dictionary.
 
-        :param result <dict> Storing all values mutating given dictionary
+        :param result: Storing all values mutating given dictionary
         """
+        rest = dict()
         excess = set(result.values())
 
         converted = self._convert_dict(result)
         difference = self._allocate_dict_duplicates(converted, excess)
-        length = [s for s in range(self._length)][1:]
+        length = [s for s in range(self._length)]
         for value in difference.values():
             letters = value.values()[0][1:]
             for i in length:
@@ -325,21 +332,21 @@ class Abbreviation(object):
                 # end if delete from rest
             # end if result not in value
         # end for iterate rest items
-        print 'duplicates >>>', rest
         if rest:
             logging.debug('For %s names I could not create individual '
                           'abbreviations: %s' % (len(rest), rest))
         # end if logging report
     # end def _remove_duplicates
 
-    def _convert_dict(self, elements, result=dict(), index=0):
+    @staticmethod
+    def _convert_dict(elements):
         """Convert key and values of given dictionary into value and create
         an index number as a key. Mutate the given dictionary.
 
-        :param elements <dict> Storing all the abbreviations and nodenames
-        :param result <dict> Storing all values in a new dictionary
-        :param index <int> Unsigned integer to iterate the depth level
+        :param elements: Storing all the abbreviations and nodenames
         """
+        result = dict()
+        index = 0
         for key, value in elements.items():
             result[index] = {value: key}
             index += 1
@@ -347,13 +354,14 @@ class Abbreviation(object):
         return result
     # end def _convert_dict
 
-    def _allocate_dict_duplicates(self, elements, excess, diff=dict()):
+    @staticmethod
+    def _allocate_dict_duplicates(elements, excess):
         """Return duplicates in given dictionary as a new dictionary.
 
-        :param elements <dict> Storing all the abbreviations and nodenames
-        :param excess <dict> Storing only the duplicates
-        :param diff <dict> Storing the differences of intersecting values
+        :param elements: Storing all the abbreviations and node names
+        :param excess: Storing only the duplicates
         """
+        diff = dict()
         temp = dict()
         for e in excess:
             for key, value in elements.items():
@@ -373,11 +381,11 @@ class Abbreviation(object):
     def _compare_to_dict(self, item, letters, elements, index, rest):
         """Compare redundant item with whole dictionary and individualize.
 
-        :param item <dict> Nodename as key and abbreviation as value
-        :param letters <string> NodeName string to iterate through each char
-        :param elements <dict> The whole dictionary of abbreviations
-        :param index <int> Index number of the abbreviation to replace the char
-        :param rest <dict> Output of non abbreviatable nodeNames
+        :param item: Node name as key and abbreviation as value
+        :param letters: Node name string to iterate through each char
+        :param elements: The whole dictionary of abbreviations
+        :param index: Index number of the abbreviation to replace the char
+        :param rest: Output of non abbreviated node names
         """
         if not letters:
             for k, v in elements.items():
@@ -404,10 +412,10 @@ class Abbreviation(object):
     def _iterate_abbreviation(self, item, letters, elements, index):
         """Iterate, compare and return given abbreviation to whole dictionary.
 
-        :param item <dict> Nodename as key and abbreviation as value
-        :param letters <string> NodeName string to iterate through each char
-        :param elements <dict> The whole dictionary of abbreviations
-        :param index <int> Index number of abbreviation to replace the char
+        :param item:  Node name as key and abbreviation as value
+        :param letters: NodeName string to iterate through each char
+        :param elements: The whole dictionary of abbreviations
+        :param index: Index number of abbreviation to replace the char
         """
         for letter in letters:
             key, value = item.items()[0]
@@ -419,25 +427,3 @@ class Abbreviation(object):
         # end if iterate letters
     # end def _iterate_abbreviation
 # end class Abbreviation
-
-
-def test_abbreviation():
-    """Setup function to test Abbreviation class"""
-    # from maya import cmds
-    import os, json
-    data = ['Friday']
-    # data += cmds.allNodeTypes()
-    file_name = 'maya_nodes.json'
-    data_path = os.path.join(__file__, os.pardir, os.pardir, 'data')
-    file_path = os.path.join(os.path.abspath(data_path), file_name)
-    with open(file_path) as json_data:
-        data = json.load(json_data)
-    # end with get data from file
-    abb = Abbreviation(exclude_abbreviation={'Friday': ['FR', 'FRI', 'FRID'],
-                                             'pointConstraint': ['PO']})
-    result = abb.abbreviate(data, length=3)
-    print(len(result))
-    # for k, v in result.items():
-    #     print k, v
-    # print(result['polyCube'], result['pointConstraint'])
-# end def test_abbreviation

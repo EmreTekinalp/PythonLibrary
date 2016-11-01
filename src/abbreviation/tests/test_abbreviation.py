@@ -66,10 +66,10 @@ class TestAbbreviation(unittest.TestCase):
 
         a = abbreviation.Abbreviation()
         print('DATA LENGTH:', len(data))
-        for n in range(1, 11):
+        for n in range(2, 11):
             print('Testing with length = %s:' % n)
             self.assertRaises(Exception, a.abbreviate(data, n))
-            print('OK')
+            print('OK\n')
         # end for linear O(n) iterating length of abbr, ranging from 1 to 10
     # end def test_abbreviate_on_countries_data
 
@@ -133,10 +133,10 @@ class TestAbbreviation(unittest.TestCase):
         # end with get data from file
 
         a = abbreviation.Abbreviation()
-        for case in [0, 1, 2, 3, abbreviation.UPPER, abbreviation.LOWER,
+        for case in [0, 1, 2, 3, abbreviation.UPPERCASE, abbreviation.LOWERCASE,
                      abbreviation.CAPITALIZE, abbreviation.NEUTRAL]:
             print('Testing with case = %s:' % case)
-            self.assertRaises(Exception, a.abbreviate(data, 3, case))
+            self.assertRaises(Exception, a.abbreviate(data, 3))
             print('OK')
         # end for iterate constant case variables and numerical values
     # end def test_abbreviate_on_valid_case
@@ -162,8 +162,8 @@ class TestAbbreviation(unittest.TestCase):
             data = json.load(json_data)
         # end with get data from file
 
-        excludes = ['_', '#', '.', 'a', 'E', 'o', 'nim']
-        a = abbreviation.Abbreviation(exclude_abbreviation=excludes)
+        includes = ['_', '#', '.', 'a', 'E', 'o', 'nim']
+        a = abbreviation.Abbreviation(include_special_char=includes)
         self.assertRaises(Exception, a.abbreviate(data, 2))
     # end def test_abbreviate_on_maya_nodes_exclude_characters
 
@@ -177,8 +177,8 @@ class TestAbbreviation(unittest.TestCase):
         data += ['Hel&&loW0()rlD', 843, 7 % 5, '1234']
         data += [{'Word': 123, 'Foobar': 'Germany', 123: 'working'}]
 
-        excludes = ['_', '#', '-']
-        a = abbreviation.Abbreviation(exclude_abbreviation=excludes)
+        includes = ['_', '#', '-']
+        a = abbreviation.Abbreviation(include_special_char=includes)
         for n in range(1, 4):
             print('Testing with length = %s:' % n)
             self.assertRaises(Exception, a.abbreviate(data, n))
