@@ -163,7 +163,7 @@ class TestAbbreviation(unittest.TestCase):
         # end with get data from file
 
         excludes = ['_', '#', '.', 'a', 'E', 'o', 'nim']
-        a = abbreviation.Abbreviation(exclude_characters=excludes)
+        a = abbreviation.Abbreviation(exclude_abbreviation=excludes)
         self.assertRaises(Exception, a.abbreviate(data, 2))
     # end def test_abbreviate_on_maya_nodes_exclude_characters
 
@@ -178,7 +178,7 @@ class TestAbbreviation(unittest.TestCase):
         data += [{'Word': 123, 'Foobar': 'Germany', 123: 'working'}]
 
         excludes = ['_', '#', '-']
-        a = abbreviation.Abbreviation(exclude_characters=excludes)
+        a = abbreviation.Abbreviation(exclude_abbreviation=excludes)
         for n in range(1, 4):
             print('Testing with length = %s:' % n)
             self.assertRaises(Exception, a.abbreviate(data, n))
